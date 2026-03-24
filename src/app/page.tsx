@@ -26,11 +26,37 @@ const TypewriterText = ({ text }: { text: string }) => {
   );
 };
 
+const DEFAULT_HEADLINES: Record<string, string> = {
+  ja: "溢れる想いを、\n澄み渡る言の葉へ。",
+  en: "Overflowing feelings, distilled into lucid words.",
+  fr: "Des émotions débordantes, distillées en mots limpides.",
+  es: "Sentimientos desbordantes, destilados en palabras nítidas.",
+  de: "Überströmende Gefühle, destilliert zu klaren Worten.",
+  it: "Emozioni traboccanti, distillate in parole limpide.",
+  pt: "Sentimentos transbordantes, destilados em palavras límpidas.",
+  "pt-br": "Sentimentos transbordantes, destilados em palavras límpidas.",
+  ko: "넘치는 마음을, 맑은 말로.",
+  "zh-cn": "将满溢的情感，凝练成澄澈的言语。",
+  "zh-tw": "把滿溢的情感，凝鍊成澄澈的言語。",
+  ru: "Переполняющие чувства, превращённые в ясные слова.",
+};
+
+const getDefaultHeadline = (lang: string) => {
+  const normalized = lang.toLowerCase();
+  if (DEFAULT_HEADLINES[normalized]) return DEFAULT_HEADLINES[normalized];
+  const base = normalized.split(/[-_]/)[0];
+  return DEFAULT_HEADLINES[base] ?? DEFAULT_HEADLINES.en;
+};
+
 export default function FeedMonkApp() {
   const [text, setText] = useState("");
   const[result, setResult] = useState<any>(null);
+  const [headline, setHeadline] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [lang, setLang] = useState(() =>
+    typeof navigator !== "undefined" && navigator.language ? navigator.language : "ja"
+  );
 
   // ダークモード制御用
   const { theme, setTheme, systemTheme } = useTheme();
@@ -41,18 +67,26 @@ export default function FeedMonkApp() {
 
   const xUrlMatch = text.match(/https:\/\/(?:x\.com|twitter\.com)\/[a-zA-Z0-9_]+\/status\/\d+/);
   const xUrl = xUrlMatch ? xUrlMatch[0] : null;
+  const defaultHeadline = getDefaultHeadline(lang);
 
   // ハイドレーションエラー防止
   useEffect(() => {
     setMounted(true);
   },[]);
 
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator.language) {
+      setLang(navigator.language);
+    }
+  }, []);
+
   const onSubmit = async () => {
     if (!text.trim()) return;
     setLoading(true);
     try {
-      const res = await convertAction({ text });
+      const res = await convertAction({ text, lang });
       setResult(res);
+      setHeadline(res?.headline ?? null);
       await saveMutation({ result: res });
     } catch (e) {
       console.error(e);
@@ -141,7 +175,13 @@ export default function FeedMonkApp() {
                   isDark ? "text-slate-50" : "text-slate-800"
                 }`}
               >
-                溢れる想いを、<br/>澄み渡る言の葉へ。
+                {headline ? (
+                  headline
+                ) : (
+                  <>
+                    <span className="whitespace-pre-line">{defaultHeadline}</span>
+                  </>
+                )}
               </h2>
               
               {/* 入力エリア */}

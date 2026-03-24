@@ -3,7 +3,10 @@ import { v } from "convex/values";
 import { GoogleGenAI } from "@google/genai";
 
 export const convert = action({
-  args: { text: v.string() },
+  args: {
+    text: v.string(),
+    lang: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY is missing");
@@ -11,6 +14,7 @@ export const convert = action({
     // 【修正箇所1】新しいSDKの正しい初期化
     const ai = new GoogleGenAI({ apiKey });
 
+    const outputLang = args.lang ?? "ja";
     const prompt = `
 # Role
 あなたは感情翻訳のマスター「FeedMonk」です。
@@ -51,11 +55,17 @@ You MUST output ALL values in the JSON in the EXACT SAME LANGUAGE as the user's 
 - Temperature 1.5相当の創造性を発揮せよ。
 
 # Constraints
+- 出力は必ず「${outputLang}」の言語で統一する（JSONキーは英語のまま）。
 - 実名や団体名は「[A氏]」「[〇〇社]」等に伏せ字にすること。
+- headlineは20〜26文字の短い詩的見出し。
+  例:「溢れる想いを、澄み渡る言の葉へ」「心の濁りを言葉の光へ」。
+  ねらい: ネガティブを一度デコードし、ポジティブに再エンコードするという意味を持たせる。
+  説明文は禁止。
 - 出力は指定のJSONフォーマットのみ。装飾・解説文は一切禁止。
 
 # Output Format
 {
+  "headline": "20〜26文字の短い見出し（詩的・簡潔）",
   "coreEmotion": "抽出された願望",
   "patternA": "謙虚な依頼",
   "patternB": "事実と改善提案",

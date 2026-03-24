@@ -8,11 +8,12 @@ export default defineSchema({
     mode: v.optional(v.string()),
     mildnessLevel: v.optional(v.number()),
     result: v.object({
+      headline: v.optional(v.string()),
       coreEmotion: v.string(),
       patternA: v.string(),
       patternB: v.string(),
       patternC: v.string(),
-      explanation: v.string(),
+      explanation: v.optional(v.string()),
       poeticTranslation: v.optional(v.string()),
     }),
   }),
