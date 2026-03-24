@@ -78,7 +78,7 @@ export default function FeedMonkApp() {
 
   if (result) {
     bgGradient = isDark 
-      ? "radial-gradient(circle at 50% -20%, #451a03, #0a0a0a)" // 悟り（ダークアンバー）
+      ? "radial-gradient(circle at 50% -20%, #8a5a00 0%, #0f4c5c 45%, #0a0a0a 100%)" // 悟り（ダーク：ゴールド→青緑→黒）
       : "radial-gradient(circle at 50% -20%, #fef3c7, #F9F9F7)"; // 悟り（ライトアンバー）
   } else if (loading) {
     bgGradient = isDark
